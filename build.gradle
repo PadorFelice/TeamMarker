@@ -1,0 +1,64 @@
+plugins {
+    // Fabric Loom - 官方 Gradle 构建插件
+    id 'fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "Fabric"
+        url = "https://maven.fabricmc.net/"
+    }
+    maven {
+        name = "Minecraft Libraries"
+        url = "https://libraries.minecraft.net/"
+    }
+}
+
+// === 依赖配置 ===
+// 注意：本模组为纯客户端模组，不依赖任何服务端逻辑
+dependencies {
+    // Minecraft 本体
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    // Yarn mappings（官方 mapping）
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    // Fabric Loader
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    // Fabric API（仅使用其中的客户端指令 API）
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+// === 资源处理：将版本号注入 fabric.mod.json ===
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+// === 编译设置：Java 21（1.21.x 必需） ===
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+    it.options.encoding = 'UTF-8'
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from('LICENSE') {
+        // 可选：如果存在 LICENSE 文件，重命名后打包
+        rename { "${it}_${project.archives_base_name}" }
+    }
+}

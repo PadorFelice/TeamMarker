@@ -1,0 +1,52 @@
+# Gradle
+.gradle/
+build/
+out/
+target/
+
+# Eclipse
+bin/
+*.launch
+.settings/
+.metadata/
+.classpath
+.project
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+runs/
+
+# NetBeans
+nbproject/private/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Java
+*.class
+*.log
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Loom 缓存
+.fabric/
+run/
+
+# 其他
+*.tmp
+*.bak
+*.swp

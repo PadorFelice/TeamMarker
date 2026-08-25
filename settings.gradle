@@ -1,0 +1,13 @@
+pluginManagement {
+    repositories {
+        // 优先使用 Fabric 官方 Maven
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'teammarker'

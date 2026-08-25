@@ -1,0 +1,6 @@
+{
+  "category.teammarker": "TeamMarker",
+  "key.teammarker.add_target": "添加准星指向的玩家到队友名单",
+  "key.teammarker.remove_target": "移除准星指向的玩家",
+  "key.teammarker.add_near": "添加4格范围内的所有玩家到名单"
+}

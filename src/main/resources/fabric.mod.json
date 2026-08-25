@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "teammarker",
+  "version": "${version}",
+  "name": "TeamMarker",
+  "description": "客户端模组：在队友头顶名字前添加自定义前缀标识。纯客户端运行，不依赖服务端或原版队伍系统。",
+  "authors": [
+    "TeamMarker Contributors"
+  ],
+  "contact": {
+    "homepage": "https://example.com/teammarker",
+    "sources": "https://example.com/teammarker"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.example.teammarker.TeamMarkerClient"
+    ]
+  },
+  "mixins": [
+    "teammarker.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.8",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

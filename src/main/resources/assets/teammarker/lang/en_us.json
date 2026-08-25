@@ -1,0 +1,6 @@
+{
+  "category.teammarker": "TeamMarker",
+  "key.teammarker.add_target": "Add Crosshair-Targeted Player to Team List",
+  "key.teammarker.remove_target": "Remove Crosshair-Targeted Player",
+  "key.teammarker.add_near": "Add All Players Within 4 Blocks"
+}
