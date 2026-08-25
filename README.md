@@ -175,32 +175,3 @@
 Remove-Item "$env:APPDATA\.minecraft\mods\teammarker-1.0.0.jar"
 Remove-Item "$env:APPDATA\.minecraft\config\teammarker.json"
 ```
-
----
-
-## 九、技术细节（开发者参考）
-
-### 项目结构
-```
-src/main/java/com/example/teammarker/
-├── TeamMarkerClient.java       客户端主入口 + 按键绑定
-├── config/
-│   ├── TeamMarkerConfig.java       配置数据模型
-│   └── TeamMarkerConfigManager.java   加载/保存/业务方法
-├── command/
-│   └── TeamMarkerCommand.java      客户端指令 (/teammarker ...)
-└── mixin/
-    ├── EntityRendererMixin.java    Hook 头顶名字渲染
-    └── EntityMixin.java            Hook 发光效果
-```
-
-### 关键 Mixin
-
-- `EntityRendererMixin`：1.21.8 中 `renderLabelIfPresent` 第一个参数是 `EntityRenderState`（不是 `Entity`），通过 `PlayerEntityRenderState.name` 直接拿玩家名
-- `EntityMixin`：Hook `isGlowing()` 和 `getTeamColorValue()`，仅在队友为 true 时覆盖返回值
-
-### 纯客户端保证
-- `fabric.mod.json` 中 `environment: "client"`
-- 入口注册在 `client` entrypoint
-- 无服务端事件、无网络包、无指令注册到服务端 dispatcher
-- 所有按键监听用 `ClientTickEvents.END_CLIENT_TICK`，不发包
