@@ -28,7 +28,7 @@ public abstract class EntityMixin {
                 return;
             }
             if (name == null || name.isEmpty()) return;
-            if (!TeamMarkerConfigManager.containsPlayer(name)) return;
+            if (!TeamMarkerConfigManager.isPlayerMarked(name)) return;
 
             cir.setReturnValue(true);
         } catch (Throwable ignored) {
@@ -51,9 +51,9 @@ public abstract class EntityMixin {
                 return;
             }
             if (name == null || name.isEmpty()) return;
-            if (!TeamMarkerConfigManager.containsPlayer(name)) return;
+            if (!TeamMarkerConfigManager.isPlayerMarked(name)) return;
 
-            int rgb = colorCodeToRgb(TeamMarkerConfigManager.getColorCode());
+            int rgb = colorCodeToRgb(TeamMarkerConfigManager.getPlayerColorCode(name));
             if (rgb != -1) {
                 cir.setReturnValue(rgb);
             }

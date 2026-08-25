@@ -2,6 +2,7 @@ package com.example.teammarker;
 
 import com.example.teammarker.command.TeamMarkerCommand;
 import com.example.teammarker.config.TeamMarkerConfigManager;
+import com.example.teammarker.screen.TeamPickerScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -18,6 +19,9 @@ import net.minecraft.util.hit.HitResult;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TeamMarkerClient implements ClientModInitializer {
 
@@ -129,11 +133,15 @@ public class TeamMarkerClient implements ClientModInitializer {
             return;
         }
 
-        boolean added = TeamMarkerConfigManager.addPlayer(name);
-        if (added) {
-            sendLocalMessage(client, Text.literal("已添加队友: " + name + " (按 K 加下一个)").formatted(Formatting.GREEN));
-        } else {
-            sendLocalMessage(client, Text.literal(name + " 已在名单中").formatted(Formatting.YELLOW));
+        try {
+            client.setScreen(new TeamPickerScreen(List.of(name)));
+        } catch (Throwable t) {
+            boolean added = TeamMarkerConfigManager.addPlayer(name);
+            if (added) {
+                sendLocalMessage(client, Text.literal("已添加队友: " + name).formatted(Formatting.GREEN));
+            } else {
+                sendLocalMessage(client, Text.literal(name + " 已在名单中").formatted(Formatting.YELLOW));
+            }
         }
     }
 
@@ -176,17 +184,14 @@ public class TeamMarkerClient implements ClientModInitializer {
         }
         try {
             double radiusSq = ADD_NEAR_RADIUS * ADD_NEAR_RADIUS;
-            int added = 0;
-            int skipped = 0;
+            List<String> names = new ArrayList<>();
             for (PlayerEntity other : client.world.getPlayers()) {
                 if (other == client.player) continue;
-                double distSq;
                 try {
-                    distSq = other.squaredDistanceTo(client.player);
+                    if (other.squaredDistanceTo(client.player) > radiusSq) continue;
                 } catch (Throwable ignored) {
                     continue;
                 }
-                if (distSq > radiusSq) continue;
                 String name;
                 try {
                     name = other.getName().getString();
@@ -194,18 +199,16 @@ public class TeamMarkerClient implements ClientModInitializer {
                     continue;
                 }
                 if (name == null || name.isEmpty()) continue;
-                if (TeamMarkerConfigManager.addPlayer(name)) {
-                    added++;
-                } else {
-                    skipped++;
-                }
+                names.add(name);
             }
-            if (added == 0 && skipped == 0) {
+            if (names.isEmpty()) {
                 sendLocalMessage(client, Text.literal("4 格范围内没有其他玩家").formatted(Formatting.YELLOW));
-            } else {
-                sendLocalMessage(client, Text.literal(
-                        "范围添加完成：新增 " + added + " 个，已在名单中 " + skipped + " 个"
-                ).formatted(Formatting.GREEN));
+                return;
+            }
+            try {
+                client.setScreen(new TeamPickerScreen(names));
+            } catch (Throwable t) {
+                sendLocalMessage(client, Text.literal("打开选队界面失败").formatted(Formatting.RED));
             }
         } catch (Throwable t) {
             sendLocalMessage(client, Text.literal("范围添加失败").formatted(Formatting.RED));

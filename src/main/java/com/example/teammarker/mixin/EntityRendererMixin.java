@@ -1,6 +1,5 @@
 package com.example.teammarker.mixin;
 
-import com.example.teammarker.config.TeamMarkerConfig;
 import com.example.teammarker.config.TeamMarkerConfigManager;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderer;
@@ -66,17 +65,16 @@ public abstract class EntityRendererMixin {
             if (playerName == null || playerName.isEmpty()) {
                 return text;
             }
-            if (!TeamMarkerConfigManager.containsPlayer(playerName)) {
+            if (!TeamMarkerConfigManager.isPlayerMarked(playerName)) {
                 return text;
             }
 
-            TeamMarkerConfig config = TeamMarkerConfigManager.getConfig();
-            String prefix = config.prefixText;
+            String prefix = TeamMarkerConfigManager.getPlayerPrefix(playerName);
             if (prefix == null || prefix.isEmpty()) {
                 return text;
             }
 
-            Formatting color = safeFormatting(config.color);
+            Formatting color = safeFormatting(TeamMarkerConfigManager.getPlayerColorCode(playerName));
             MutableText result = Text.literal(prefix).append(Text.literal(" ")).append(text);
             if (color != null) {
                 result = result.formatted(color);

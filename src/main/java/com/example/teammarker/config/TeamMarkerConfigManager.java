@@ -16,10 +16,8 @@ import java.util.List;
 public class TeamMarkerConfigManager {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
     private static final Path CONFIG_PATH =
             FabricLoader.getInstance().getConfigDir().resolve("teammarker.json");
-
     private static TeamMarkerConfig CONFIG = new TeamMarkerConfig();
 
     public static TeamMarkerConfig getConfig() {
@@ -60,13 +58,20 @@ public class TeamMarkerConfigManager {
     }
 
     private static TeamMarkerConfig sanitize(TeamMarkerConfig c) {
-        if (c == null) {
-            return new TeamMarkerConfig();
-        }
+        if (c == null) return new TeamMarkerConfig();
         if (c.prefixText == null) c.prefixText = "[队友]";
         if (c.color == null) c.color = "e";
         if (c.playerNameList == null) c.playerNameList = new ArrayList<>();
         c.playerNameList.removeIf(item -> item == null || item.isEmpty());
+        if (c.teams == null) c.teams = new ArrayList<>();
+        for (TeamMarkerConfig.Team t : c.teams) {
+            if (t == null) continue;
+            if (t.name == null) t.name = "";
+            if (t.prefix == null) t.prefix = "[T]";
+            if (t.color == null) t.color = "e";
+            if (t.players == null) t.players = new ArrayList<>();
+            t.players.removeIf(item -> item == null || item.isEmpty());
+        }
         return c;
     }
 
@@ -103,13 +108,9 @@ public class TeamMarkerConfigManager {
 
     public static boolean addPlayer(String name) {
         if (name == null || name.isBlank()) return false;
-        if (CONFIG.playerNameList == null) {
-            CONFIG.playerNameList = new ArrayList<>();
-        }
+        if (CONFIG.playerNameList == null) CONFIG.playerNameList = new ArrayList<>();
         for (String entry : CONFIG.playerNameList) {
-            if (entry != null && entry.equalsIgnoreCase(name)) {
-                return false;
-            }
+            if (entry != null && entry.equalsIgnoreCase(name)) return false;
         }
         CONFIG.playerNameList.add(name);
         save();
@@ -122,8 +123,12 @@ public class TeamMarkerConfigManager {
         boolean removed = CONFIG.playerNameList.removeIf(
                 entry -> entry != null && entry.equalsIgnoreCase(name)
         );
-        if (removed) save();
-        return removed;
+        boolean removedFromTeams = removeFromAllTeams(name);
+        if (removed || removedFromTeams) {
+            save();
+            return true;
+        }
+        return false;
     }
 
     public static List<String> getPlayerList() {
@@ -133,5 +138,93 @@ public class TeamMarkerConfigManager {
 
     public static boolean containsPlayer(String name) {
         return CONFIG.containsPlayerIgnoreCase(name);
+    }
+
+    public static List<TeamMarkerConfig.Team> getTeams() {
+        if (CONFIG.teams == null) {
+            CONFIG.teams = new ArrayList<>();
+        }
+        return CONFIG.teams;
+    }
+
+    public static boolean createTeam(String teamName, String prefix, String color) {
+        if (teamName == null || teamName.isBlank()) return false;
+        if (CONFIG.teams == null) CONFIG.teams = new ArrayList<>();
+        for (TeamMarkerConfig.Team t : CONFIG.teams) {
+            if (t != null && t.name != null && t.name.equalsIgnoreCase(teamName)) return false;
+        }
+        TeamMarkerConfig.Team t = new TeamMarkerConfig.Team();
+        t.name = teamName;
+        t.prefix = (prefix == null || prefix.isEmpty()) ? "[T]" : prefix;
+        t.color = (color == null || color.isEmpty()) ? "e" : color.substring(0, 1);
+        t.players = new ArrayList<>();
+        CONFIG.teams.add(t);
+        save();
+        return true;
+    }
+
+    public static boolean deleteTeam(String teamName) {
+        if (teamName == null || teamName.isBlank() || CONFIG.teams == null) return false;
+        boolean removed = CONFIG.teams.removeIf(
+                t -> t != null && t.name != null && t.name.equalsIgnoreCase(teamName)
+        );
+        if (removed) save();
+        return removed;
+    }
+
+    public static TeamMarkerConfig.Team findTeamOfPlayer(String playerName) {
+        return CONFIG.findTeamOfPlayer(playerName);
+    }
+
+    public static TeamMarkerConfig.Team findTeamByName(String teamName) {
+        return CONFIG.findTeamByName(teamName);
+    }
+
+    public static boolean addPlayerToTeam(String playerName, String teamName) {
+        if (playerName == null || playerName.isBlank()) return false;
+        if (teamName == null || teamName.isBlank()) return false;
+        if (CONFIG.teams == null) CONFIG.teams = new ArrayList<>();
+        TeamMarkerConfig.Team target = findTeamByName(teamName);
+        if (target == null) return false;
+        removeFromAllTeams(playerName);
+        if (target.players == null) target.players = new ArrayList<>();
+        for (String e : target.players) {
+            if (e != null && e.equalsIgnoreCase(playerName)) return false;
+        }
+        target.players.add(playerName);
+        if (CONFIG.playerNameList != null) {
+            CONFIG.playerNameList.removeIf(e -> e != null && e.equalsIgnoreCase(playerName));
+        }
+        save();
+        return true;
+    }
+
+    public static boolean removeFromAllTeams(String playerName) {
+        if (playerName == null || playerName.isBlank() || CONFIG.teams == null) return false;
+        boolean any = false;
+        for (TeamMarkerConfig.Team t : CONFIG.teams) {
+            if (t == null) continue;
+            if (t.removePlayer(playerName)) any = true;
+        }
+        return any;
+    }
+
+    public static String getPlayerPrefix(String playerName) {
+        TeamMarkerConfig.Team t = findTeamOfPlayer(playerName);
+        if (t != null) return t.prefix == null ? "[T]" : t.prefix;
+        if (containsPlayer(playerName)) return getPrefix();
+        return "";
+    }
+
+    public static String getPlayerColorCode(String playerName) {
+        TeamMarkerConfig.Team t = findTeamOfPlayer(playerName);
+        if (t != null) return t.color == null ? "e" : t.color;
+        if (containsPlayer(playerName)) return getColorCode();
+        return "";
+    }
+
+    public static boolean isPlayerMarked(String playerName) {
+        if (findTeamOfPlayer(playerName) != null) return true;
+        return containsPlayer(playerName);
     }
 }
